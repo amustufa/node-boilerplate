@@ -1,5 +1,6 @@
 const awilix = require('awilix');
-const Joi = require('@hapi/joi');
+const xss = require('@puzzleframework/joi-xss');
+const Joi = require('@hapi/joi').extend(xss('object'), xss('array'), xss('string'));
 Joi.objectId = require('joi-objectid')(Joi)
 const Boom = require('@hapi/boom');
 const _ = require('lodash');
@@ -20,7 +21,7 @@ module.exports = async function FastDI(options = {}) {
         logger: awilix.asValue(logger),
         Joi: awilix.asValue(Joi),
         Boom: awilix.asValue(Boom),
-        _: awilix.asValue(_),
+        _: awilix.asValue(_)
     });
 
     container.loadModules(
@@ -30,7 +31,9 @@ module.exports = async function FastDI(options = {}) {
             '../services/**/*.js',
             '../helpers/**/*.js',
             '../schema/**/*.js',
-            '../handlers/**/*.js'
+            '../handlers/**/*.js',
+            '../mediators/**/*.js',
+            '../consumers/**/*.js',
         ],
         {
             cwd: __dirname,
@@ -51,6 +54,9 @@ module.exports = async function FastDI(options = {}) {
                 break;
             case 'cache':
                 container.register('cache', awilix.asFunction(() => value).singleton());
+                break;
+            case 'queue':
+                container.register('queue', awilix.asFunction(() => value).singleton());
                 break;
         }
     }
